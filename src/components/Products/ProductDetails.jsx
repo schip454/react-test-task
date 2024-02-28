@@ -1,28 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import {
-  getProduct,
-  getProductColor,
-  getSize,
-  getSizes,
-} from '../../services/api';
-import { Link } from 'react-router-dom';
+import { getProduct, getSizes } from '../../services/api';
 
 import Loader from '../Loader/Loader';
 import ImageList from '../ImageList/ImageList';
 import SizeBtn from '../SizeBtn/SizeBtn';
+import { AppContext } from '../../context/AppContext';
+import BackBtn from '../BackBtn/BackBtn';
 
 const ProductDetails = () => {
   const { id } = useParams();
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [productDetails, setProductDetails] = useState(null);
-  const [selectedColorId, setSelectedColorId] = useState(1);
-  const [selectedSizeId, setSelectedSizeId] = useState(null);
-  const [allSizes, setAllSizes] = useState([]);
+  const {
+    selectedSizeId,
+    productDetails,
+    addToCart,
+    selectedColorId,
+    setProductDetails,
+    setSelectedSizeId,
+    setSelectedColorId,
+    setProductId,
+  } = useContext(AppContext);
 
-  console.log(selectedColorId, 'selectedColorId');
-  console.log(selectedSizeId, 'selectedSizeId');
+  const [isLoading, setIsLoading] = useState(false);
+  const [allSizes, setAllSizes] = useState([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -31,6 +32,7 @@ const ProductDetails = () => {
       const sizes = await getSizes();
 
       setProductDetails(product);
+      setProductId(parseInt(id));
       setAllSizes(sizes);
       setIsLoading(false);
     };
@@ -52,6 +54,7 @@ const ProductDetails = () => {
         availableSizes.push(size);
       }
     }
+
     return availableSizes;
   };
   const availableSizes = getAvailableSizes();
@@ -64,15 +67,25 @@ const ProductDetails = () => {
     }
   };
 
+  const handleAddToCart = () => {
+    if (!selectedColorId) return alert('Выберите цвет');
+    if (!availableSizes.length) return alert('Нет в наличии');
+    if (!selectedSizeId) return alert('Выберите размер');
+
+    addToCart();
+  };
+
+  const handleSelectColor = (colorId) => {
+    setSelectedSizeId(null);
+    setSelectedColorId(colorId);
+  };
+
   if (isLoading) return <Loader />;
 
   return (
     <div className="max-w-[1280px] flex flex-col justify-center">
-      <div className=" mt-4">
-        <Link className="text-lg hover:underline" to="/">
-          Назад
-        </Link>
-      </div>
+      <BackBtn />
+
       <h2 className="text-3xl font-bold mb-4">{productDetails?.name}</h2>
       <div className="flex flex-col justify-center items-center">
         {productDetails?.colors?.map((color) => (
@@ -108,7 +121,7 @@ const ProductDetails = () => {
                           ? 'bg-black hover:bg-black'
                           : ''
                       }`}
-                      onClick={() => setSelectedColorId(color.id)}>
+                      onClick={() => handleSelectColor(color.id)}>
                       {color.name}
                     </button>
                   ))}
@@ -120,9 +133,11 @@ const ProductDetails = () => {
       </div>
 
       <div className=" mt-4">
-        <Link className="text-lg hover:underline" to="/">
+        <button
+          onClick={handleAddToCart}
+          className="rounded-xl text-lg px-3 py-1 hover:bg-slate-600/60 transition-colors ">
           Добавить в корзину
-        </Link>
+        </button>
       </div>
     </div>
   );
