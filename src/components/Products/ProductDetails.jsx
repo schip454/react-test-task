@@ -9,84 +9,119 @@ import {
 import { Link } from 'react-router-dom';
 
 import Loader from '../Loader/Loader';
-import ImageList from '../ImageItem/ImageList';
+import ImageList from '../ImageList/ImageList';
+import SizeBtn from '../SizeBtn/SizeBtn';
 
 const ProductDetails = () => {
   const { id } = useParams();
 
   const [isLoading, setIsLoading] = useState(false);
   const [productDetails, setProductDetails] = useState(null);
+  const [selectedColorId, setSelectedColorId] = useState(1);
+  const [selectedSizeId, setSelectedSizeId] = useState(null);
   const [allSizes, setAllSizes] = useState([]);
+
+  console.log(selectedColorId, 'selectedColorId');
+  console.log(selectedSizeId, 'selectedSizeId');
 
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
-      // const data = await getProducts();
-      const data = await getProduct(id);
-      const data2 = await getSizes();
-      const data3 = await getSize(1);
-      const data5 = await getProductColor(2, 3);
+      const product = await getProduct(id);
+      const sizes = await getSizes();
 
-      console.log(data, 'getProduct');
-
-      setProductDetails(data);
-      setAllSizes(data2);
+      setProductDetails(product);
+      setAllSizes(sizes);
       setIsLoading(false);
-
-      console.log(data2, 'getSizes');
-      console.log(data3, 'getSize');
-      console.log(data5, 'getProductColor');
     };
 
     fetchProducts();
   }, []);
 
+  const selectedColor = productDetails?.colors?.find(
+    (color) => color.id === selectedColorId
+  );
+
+  const getAvailableSizes = () => {
+    if (!selectedColor || !productDetails) return [];
+
+    const availableSizes = [];
+    for (const sizeId of selectedColor.sizes) {
+      const size = allSizes.find((size) => size.id === sizeId);
+      if (size) {
+        availableSizes.push(size);
+      }
+    }
+    return availableSizes;
+  };
+  const availableSizes = getAvailableSizes();
+
+  const toggleSelectedSize = (size) => {
+    if (selectedSizeId === size) {
+      setSelectedSizeId(null);
+    } else {
+      setSelectedSizeId(size);
+    }
+  };
+
   if (isLoading) return <Loader />;
 
   return (
-    <div className=" max-w-[1280px] flex flex-col justify-center">
-      <h2 className="text-3xl font-bold mb-4">{productDetails?.name}</h2>
-      <div className="flex justify-center gap-6 items-center">
-        {productDetails?.colors?.map((color) => (
-          <div key={color.id} className="text-xl flex flex-col gap-2">
-            <ImageList
-              images={color.images}
-              alt={`${productDetails?.name} ${color.name}`}
-            />
-            <p className="">Цвет: {color.name}</p>
-            <p className="">{color.description}</p>
-            <p className="">Цена: {color.price}$</p>
-            {/* {color.sizes.length > 0 ? (
-              <p>
-                Размеры:
-                {color.sizes.map((size) => (
-                  <span key={size}> {size}</span>
-                ))}
-              
-              </p>
-            ) : (
-              <p>Размеров нет</p>
-            )} */}
-            {
-              <p>
-                Размеры:
-                {allSizes &&
-                  allSizes.map((size) => (
-                    <ul key={size.id}>
-                      <li>
-                        {size.label}
-                        {size.number}
-                      </li>
-                    </ul>
-                  ))}
-              </p>
-            }
-          </div>
-        ))}
-      </div>
+    <div className="max-w-[1280px] flex flex-col justify-center">
       <div className=" mt-4">
         <Link className="text-lg hover:underline" to="/">
           Назад
+        </Link>
+      </div>
+      <h2 className="text-3xl font-bold mb-4">{productDetails?.name}</h2>
+      <div className="flex flex-col justify-center items-center">
+        {productDetails?.colors?.map((color) => (
+          <div key={color.id} className="text-xl w-[320px] flex flex-col gap-2">
+            {color.id === selectedColorId && (
+              <>
+                <ImageList
+                  images={color.images}
+                  alt={`${productDetails?.name} ${color.name}`}
+                />
+                <p className="">Цвет: {color.name}</p>
+                <p className="">{color.description}</p>
+                <p className="">Цена: {color.price}$</p>
+                <p>Размеры:</p>
+                <div className="flex gap-2">
+                  {allSizes.map((size) => (
+                    <SizeBtn
+                      key={size.id}
+                      availableSizes={availableSizes}
+                      selectedSizeId={selectedSizeId}
+                      size={size}
+                      toggleSelectedSize={toggleSelectedSize}
+                    />
+                  ))}
+                </div>
+                <p className="">Доступные цвета:</p>
+                <div className="flex items-center gap-4">
+                  {productDetails?.colors?.map((color) => (
+                    <button
+                      key={color.id}
+                      className={`rounded-xl px-3 py-1 hover:bg-black/30 transition-colors ${
+                        selectedColorId === color.id
+                          ? 'bg-black hover:bg-black'
+                          : ''
+                      }`}
+                      onClick={() => setSelectedColorId(color.id)}>
+                      {color.name}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className=" mt-4">
+        <Link className="text-lg hover:underline" to="/">
+          Добавить в корзину
         </Link>
       </div>
     </div>

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import ImageItem from './ImageItem';
 import { FaArrowLeft } from 'react-icons/fa6';
 import { FaArrowRight } from 'react-icons/fa6';
 
@@ -18,7 +17,7 @@ const ImageList = ({ images, alt }) => {
 
   return (
     <div className="w-[300px] relative">
-      <ImageItem src={images[currentIndex]} alt={alt} />
+      <img src={images[currentIndex]} alt={alt} />
       <div className="absolute top-1/2  -translate-y-1/2 w-full">
         <button
           className="absolute left-2 hover:bg-black/30  rounded-3xl  transition-colors"
