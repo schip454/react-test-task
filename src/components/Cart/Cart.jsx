@@ -35,13 +35,6 @@ const Cart = () => {
     fetchProductDetails();
   }, [cartItems]);
 
-  // if (!productDetails.length)
-  //   return (
-  //     <>
-  //       <BackBtn />
-  //       <p>Корзина пуста</p>
-  //     </>
-  //   );
   return (
     <div className="px-4 pb-4">
       <BackBtn />
